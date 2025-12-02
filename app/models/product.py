@@ -1,10 +1,9 @@
 from datetime import datetime
 from sqlalchemy import Column, Integer, String, Float, DateTime, Boolean
-from sqlalchemy.ext.declarative import declarative_base
+from app.core.database import Base
 
-Base = declarative_base()
 
-class Product(Base):
+
     """Product model for shopping items."""
     __tablename__ = "products"
 
