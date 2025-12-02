@@ -1,0 +1,14 @@
+{
+  "welcome": "🛒 Welcome to SmartShopBot!\nI'll help you manage your shopping lists with AI-powered suggestions.",
+  "help": "👋 **Available Commands:**\n/add - Add item\n/list - View list\n/remove - Remove item\n/clear - Clear all\n/suggestions - Get AI suggestions\n/receipt - Process receipt\n/stats - View analytics\n/settings - Configure preferences",
+  "add_success": "✅ Added {item} to your shopping list",
+  "item_empty": "❌ Please specify an item to add",
+  "list_empty": "📝 Your shopping list is empty",
+  "remove_success": "✅ Removed {item} from your list",
+  "clear_success": "✅ Shopping list cleared",
+  "invalid_input": "❌ Invalid input. Please try again.",
+  "error": "❌ An error occurred. Please try again later.",
+  "settings_updated": "✅ Settings updated successfully",
+  "currency_set": "💱 Currency set to {currency}",
+  "language_set": "🌐 Language set to {language}"
+}
