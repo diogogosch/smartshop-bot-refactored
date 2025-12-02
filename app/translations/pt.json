@@ -1,0 +1,14 @@
+{
+  "welcome": "🛒 Bem-vindo ao SmartShopBot!\nVou ajudá-lo a gerenciar suas listas de compras com sugestões alimentadas por IA.",
+  "help": "👋 **Comandos Disponíveis:**\n/add - Adicionar item\n/list - Ver lista\n/remove - Remover item\n/clear - Limpar tudo\n/suggestions - Obter sugestões\n/receipt - Processar recibo\n/stats - Ver análises\n/settings - Configurar preferências",
+  "add_success": "✅ {item} adicionado à sua lista de compras",
+  "item_empty": "❌ Por favor, especifique um item para adicionar",
+  "list_empty": "📝 Sua lista de compras está vazia",
+  "remove_success": "✅ {item} removido da sua lista",
+  "clear_success": "✅ Lista de compras limpa",
+  "invalid_input": "❌ Entrada inválida. Por favor, tente novamente.",
+  "error": "❌ Um erro ocorreu. Por favor, tente novamente mais tarde.",
+  "settings_updated": "✅ Configurações atualizadas com sucesso",
+  "currency_set": "💱 Moeda definida para {currency}",
+  "language_set": "🌐 Idioma definido para {language}"
+}
