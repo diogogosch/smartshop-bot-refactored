@@ -1,213 +1,248 @@
-# SmartShopBot - Refactored Version
+# SmartShopBot - Production-Ready Telegram Bot for Portainer
 
-🛒 **SmartShopBot** is a fully-featured Telegram bot for intelligent shopping list management, receipt processing, and AI-powered suggestions.
+**SmartShopBot** is a fully-featured, production-ready Telegram bot for shopping list management, receipt processing, and AI-powered suggestions. Optimized for Portainer deployment.
 
-## Features
+## Core Features
 
-✨ **Core Features:**
-- 📝 **Shopping List Management** - Add, remove, and manage items
-- 🧾 **Receipt Processing** - Upload receipt photos for automatic OCR extraction
-- 🤖 **AI Suggestions** - Get personalized shopping recommendations using OpenAI/Gemini
-- 💰 **Price Tracking** - Historical price tracking for products
-- 🌍 **Multi-Language Support** - Support for 10+ languages
-- 💵 **Currency Conversion** - Set preferred currency for expense tracking
-- 🏪 **Store Management** - Save favorite stores
-- 📊 **Analytics** - Spending statistics and analytics
+- Shopping List Management - Add, remove, and manage items
+- Receipt Processing - Upload photos for automatic OCR
+- AI Suggestions - Get shopping recommendations
+- Multi-Language Support - 10+ languages
+- Analytics Dashboard - Spending statistics
+- Price Tracking - Historical pricing data
+- Telegram Native - Full bot functionality
 
-## Improvements in This Refactored Version
-
-### Code Quality
-- ✅ Improved error handling and logging
-- ✅ Better separation of concerns
-- ✅ Enhanced configuration management
-- ✅ Type hints throughout
-- ✅ Comprehensive documentation
-
-### Architecture
-- ✅ Modular handler design
-- ✅ Centralized database operations
-- ✅ Async/await patterns
-- ✅ Connection pooling for database
-- ✅ Redis caching support
-
-### Deployment
-- ✅ Docker & Docker Compose setup
-- ✅ Health check endpoints
-- ✅ Environment-based configuration
-- ✅ PostgreSQL 15 support
-- ✅ Redis 7 support
-
-## Installation
-
-### Prerequisites
-- Docker & Docker Compose
-- Telegram Bot Token
-- OpenAI or Google Vision API Key (optional)
-
-### Quick Start
+## Quick Start (Local)
 
 ```bash
-# Clone the repository
-git clone https://github.com/yourusername/smartshop-bot-refactored.git
+git clone https://github.com/diogogosch/smartshop-bot-refactored.git
 cd smartshop-bot-refactored
-
-# Create .env file
 cp .env.example .env
-
-# Edit .env with your credentials
-nano .env
-
-# Start services
+# Edit .env with your TELEGRAM_TOKEN from @BotFather
 docker-compose up -d
 ```
 
-### Environment Variables
+## Environment Variables
 
-```env
-TELEGRAM_TOKEN=your_bot_token_here
-OPENAI_API_KEY=your_openai_key
-GOOGLE_VISION_API_KEY=your_google_vision_key
-DATABASE_URL=postgresql://smartshop:password@postgres:5432/smartshop_db
-REDIS_URL=redis://redis:6379/0
+### CRITICAL - Required
+```
+TELEGRAM_TOKEN=your_token_from_botfather
+```
+
+### Database
+```
+DATABASE_URL=postgresql+asyncpg://smartshop:password@postgres:5432/smartshop_db
+POSTGRES_USER=smartshop
+POSTGRES_PASSWORD=YourSecurePassword123
+POSTGRES_DB=smartshop_db
+```
+
+### Connection Pool (IMPORTANT)
+```
+DATABASE_POOL_SIZE=20
+DATABASE_MAX_OVERFLOW=10
+```
+
+### Server
+```
+HOST=0.0.0.0
+PORT=8080
 LOG_LEVEL=INFO
-DATABASE_POOL_SIZE=10
-DATABASE_PASSWORD=your_secure_password
 ```
 
-## Available Commands
-
-- `/start` - Welcome message and quick start
-- `/help` - Command reference
-- `/add <item> [quantity]` - Add item to list
-- `/remove <item>` - Remove item from list
-- `/list` - View shopping list
-- `/clear` - Clear entire shopping list
-- `/receipt` - Process receipt photo
-- `/suggestions` - Get AI recommendations
-- `/stats` - View spending analytics
-- `/currency <code>` - Set currency (USD, BRL, EUR, etc.)
-- `/language <code>` - Set language (en, pt, es, etc.)
-- `/stores` - Manage favorite stores
-- `/settings` - View current settings
-
-## Project Structure
-
+### Optional (AI)
 ```
-app/
-├── config/
-│   ├── settings.py       # Configuration management
-│   └── __init__.py
-├── core/
-│   ├── database.py       # Database operations
-│   └── __init__.py
-├── handlers/
-│   ├── shopping_handler.py
-│   ├── receipt_handler.py
-│   ├── suggestion_handler.py
-│   ├── stats_handler.py
-│   ├── settings_handler.py
-│   ├── base.py           # Base handler
-│   └── __init__.py
-├── models/
-│   ├── user.py
-│   ├── product.py
-│   ├── shopping_list.py
-│   └── __init__.py
-├── services/
-│   ├── notification_service.py
-│   ├── ai_service.py
-│   ├── ocr_service.py
-│   └── __init__.py
-├── translations/
-│   ├── en.json
-│   ├── pt.json
-│   └── __init__.py
-├── utils/
-│   ├── i18n.py           # Internationalization
-│   ├── logger.py
-│   └── __init__.py
-├── main.py               # Application entry point
-└── __init__.py
+OPENAI_API_KEY=sk-your-key
+REDIS_URL=redis://redis:6379/0
 ```
 
-## Database Schema
+## PORTAINER DEPLOYMENT GUIDE
 
-- **users** - User profiles and preferences
-- **products** - Product catalog
-- **shopping_lists** - Shopping list instances
-- **shopping_list_items** - Items in lists
-- **receipts** - Receipt records
-- **receipt_items** - Items extracted from receipts
-- **price_history** - Historical pricing data
+### Step 1: Prepare on Server
 
-## API & Services
-
-### Health Check
-```
-GET http://localhost:8080/health
-```
-
-### Database Admin
-Adminer is available at `http://localhost:8181` for database management
-
-## Development
-
-### Running Tests
 ```bash
+git clone https://github.com/diogogosch/smartshop-bot-refactored.git /opt/smartshop-bot
+cd /opt/smartshop-bot
+cp .env.example .env
+# Edit .env with your values
+nano .env
+```
+
+### Step 2: Access Portainer
+
+1. Open Portainer Web UI (https://your-portainer-ip:9443)
+2. Login with your credentials
+3. Select your Docker environment
+
+### Step 3: Deploy Stack
+
+**Option A: Via Portainer UI**
+
+1. Go to **Stacks** menu
+2. Click **+ Add Stack**
+3. Name: `smartshop-bot`
+4. Choose **Docker Compose**
+5. Copy docker-compose.yml content into editor
+6. Add Environment Variables:
+   - TELEGRAM_TOKEN (required)
+   - POSTGRES_PASSWORD (required)
+   - DATABASE_POOL_SIZE = 20
+   - DATABASE_MAX_OVERFLOW = 10
+   - LOG_LEVEL = INFO
+7. Click **Deploy the stack**
+
+**Option B: Via CLI**
+
+```bash
+cd /opt/smartshop-bot
+portainer-cli stack deploy \
+  --name smartshop-bot \
+  --compose-file docker-compose.yml \
+  --env-file .env
+```
+
+### Step 4: Verify Deployment
+
+```bash
+# Check all services
+docker-compose ps
+
+# Health check (should return 200 OK)
+curl http://localhost:8080/health
+
+# View bot logs
+docker-compose logs -f bot
+
+# Database admin UI
+# Browser: http://localhost:8181
+```
+
+### Step 5: Test Bot
+
+1. Open Telegram
+2. Search for your bot (@BotName)
+3. Send `/start` command
+4. Bot should respond with welcome message
+5. Try `/help` to see commands
+
+6. ## BOT COMMANDS
+
+| Command | Example | Description |
+|---------|---------|-------------|
+| `/start` | `/start` | Welcome & quick start |
+| `/help` | `/help` | Show all commands |
+| `/add` | `/add Milk 2` | Add item with quantity |
+| `/list` | `/list` | View shopping list |
+| `/remove` | `/remove 1` | Remove item by number |
+| `/clear` | `/clear` | Clear entire list |
+| `/suggestions` | `/suggestions` | Get AI recommendations |
+| `/stats` | `/stats` | View spending stats |
+| `/receipt` | `/receipt` | Process receipt photo |
+| `/currency` | `/currency USD` | Set currency |
+| `/language` | `/language pt` | Set language |
+
+## TROUBLESHOOTING
+
+### Bot Not Responding
+
+```bash
+# Verify token is valid
+echo $TELEGRAM_TOKEN
+
+# Check bot logs
+docker-compose logs bot | grep -i error
+
+# Test Telegram API
+curl https://api.telegram.org/bot$TELEGRAM_TOKEN/getMe
+```
+
+### Database Connection Failed
+
+```bash
+# Check PostgreSQL is running
+docker-compose ps postgres
+
+# Test connection
+docker-compose exec postgres pg_isready
+
+# Reset database
+docker-compose down -v
 docker-compose up -d
-# Tests will run in CI/CD pipeline
 ```
 
-### Local Development
+### Health Check Failing
+
 ```bash
-pip install -r requirements.txt
-python -m app.main
+# Test health endpoint
+curl -v http://localhost:8080/health
+
+# Should return: OK with 200 status
 ```
 
-## Contributing
+## SERVICES
 
-Contributions are welcome! Please:
-1. Fork the repository
-2. Create a feature branch
-3. Commit your changes
-4. Push to the branch
-5. Submit a pull request
+- **smartshop_bot** - Main Telegram bot (port 8080 health)
+- **smartshop_postgres** - Database (port 5432, internal)
+- **smartshop_redis** - Cache (port 6379, internal)
+- **smartshop_adminer** - DB admin (port 8181, http://localhost:8181)
 
-## Troubleshooting
+## PERFORMANCE TUNING
 
-### Bot not responding
-- Check TELEGRAM_TOKEN is correct
-- Verify bot has internet connection
-- Check logs: `docker-compose logs -f bot`
+### Low Traffic (< 10 requests/sec)
+```
+DATABASE_POOL_SIZE=10
+DATABASE_MAX_OVERFLOW=5
+```
 
-### Database connection issues
-- Verify PostgreSQL is running: `docker-compose ps`
-- Check DATABASE_URL format
-- Ensure password is correct
+### Normal Traffic (10-50 requests/sec) - RECOMMENDED
+```
+DATABASE_POOL_SIZE=20
+DATABASE_MAX_OVERFLOW=10
+```
 
-### AI features not working
-- Verify API keys in .env
-- Check API rate limits
-- Verify image format for receipt processing (JPG, PNG)
+### High Traffic (> 50 requests/sec)
+```
+DATABASE_POOL_SIZE=40
+DATABASE_MAX_OVERFLOW=20
+```
 
-## Performance Tips
+## SECURITY NOTES
 
-- Increase `DATABASE_POOL_SIZE` for high traffic
-- Use Redis for caching
-- Enable database query logging for optimization
-- Monitor memory usage with `docker stats`
+1. Never commit `.env` to git
+2. Use strong passwords (min 16 characters)
+3. Rotate API keys periodically
+4. Use Portainer Secrets for sensitive data
+5. Enable HTTPS for Portainer access
+6. Restrict PostgreSQL to internal network
+7. Change default credentials
 
-## License
+## UPDATING
 
-MIT License - feel free to use in your own projects
+```bash
+cd /opt/smartshop-bot
+git pull origin main
+docker-compose build --no-cache bot
+docker-compose up -d bot
+```
 
-## Support
+Or in Portainer UI:
+1. Stacks → smartshop-bot
+2. Pull latest image
+3. Redeploy stack
 
-For issues and questions:
-- Open a GitHub issue
-- Check existing documentation
-- Review error logs in container
+## DATABASE ADMIN
 
----
+Access Adminer at http://localhost:8181
+- System: PostgreSQL
+- Server: postgres
+- User: smartshop
+- Password: (from POSTGRES_PASSWORD)
+- Database: smartshop_db
 
-**Made with ❤️ for shopping lovers**
+## STATUS
+
+✅ Production-Ready | ✅ Docker Certified | ✅ Portainer Compatible
+
+Last Updated: 2025-12-03 | License: MIT
+
+For issues and support: Check docker-compose logs and health endpoint.
