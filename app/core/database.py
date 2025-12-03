@@ -1,27 +1,33 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, declarative_base
+from sqlalchemy.ext.asyncio import create_async_engine, AsyncSession, async_sessionmaker
+from sqlalchemy.orm import DeclarativeBase
 from app.config.settings import settings
 
-# Ensure Postgres URL is correct for SQLAlchemy
-DATABASE_URL = settings.DATABASE_URL.replace("postgres://", "postgresql://")
-
-engine = create_engine(
-    DATABASE_URL,
-    pool_size=settings.DATABASE_POOL_SIZE,
-    pool_pre_ping=True
+# Create Async Engine
+engine = create_async_engine(
+    settings.DATABASE_URL,
+    echo=(settings.LOG_LEVEL == "DEBUG"),
+    pool_size=20,
+    max_overflow=10
 )
 
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+# Async Session Factory
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine,
+    class_=AsyncSession,
+    expire_on_commit=False
+)
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
+class Base(DeclarativeBase):
+    pass
 
-def init_db():
-    # Import models here to ensure they are registered with Base metadata
-    from app.models import shopping  # noqa
-    Base.metadata.create_all(bind=engine)
+# Dependency for Handler usage
+async def get_db():
+    async with AsyncSessionLocal() as session:
+        try:
+            yield session
+            await session.commit()
+        except Exception:
+            await session.rollback()
+            raise
+        finally:
+            await session.close()
