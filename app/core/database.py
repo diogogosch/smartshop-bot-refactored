@@ -6,14 +6,16 @@ from app.config.settings import settings
 engine = create_async_engine(
     settings.DATABASE_URL,
     echo=(settings.LOG_LEVEL == "DEBUG"),
-    pool_size=20,
-    max_overflow=10
+            pool_size=settings.DATABASE_POOL_SIZE,
+        max_overflow=settings.DATABASE_MAX_OVERFLOW,
+        pool_pre_ping=True
 )
 
 # Async Session Factory
 AsyncSessionLocal = async_sessionmaker(
     bind=engine,
     class_=AsyncSession,
+        autoflush=False,
     expire_on_commit=False
 )
 
