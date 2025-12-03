@@ -1,73 +1,69 @@
-"""Shopping list handler commands"""
 from telegram import Update
 from telegram.ext import ContextTypes
-import logging
+from app.core.database import SessionLocal
+from app.models.shopping import User, ShoppingItem
+from app.services.ai_service import ai_service
 
-logger = logging.getLogger(__name__)
+async def ensure_user(user_id: int, username: str, db):
+    user = db.query(User).filter(User.id == user_id).first()
+    if not user:
+        user = User(id=user_id, username=username)
+        db.add(user)
+        db.commit()
+    return user
 
-async def add_to_shopping_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /add command - Add item to shopping list"""
+async def add_item_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if not context.args:
-        await update.message.reply_text("❌ Usage: /add <item> [quantity]\nExample: /add milk 2L")
+        await update.message.reply_text("❌ Usage: /add <item name>")
         return
+
+    item_text = " ".join(context.args)
+    user_id = update.effective_user.id
+    username = update.effective_user.username or "Unknown"
     
-    item_text = ' '.join(context.args)
+    with SessionLocal() as db:
+        await ensure_user(user_id, username, db)
+        new_item = ShoppingItem(user_id=user_id, name=item_text)
+        db.add(new_item)
+        db.commit()
+    
+    await update.message.reply_text(f"✅ Added: {item_text}")
+
+async def list_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     
-    try:
-        # TODO: Save to database
-        await update.message.reply_text(f"✅ Added to list: {item_text}")
-        logger.info(f"User {user_id} added: {item_text}")
-    except Exception as e:
-        logger.error(f"Error adding item: {e}")
-        await update.message.reply_text("❌ Error adding item. Please try again.")
-
-async def remove_from_shopping_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /remove command - Remove item from shopping list"""
-    if not context.args:
-        await update.message.reply_text("❌ Usage: /remove <item>")
+    with SessionLocal() as db:
+        items = db.query(ShoppingItem).filter(ShoppingItem.user_id == user_id).all()
+        
+    if not items:
+        await update.message.reply_text("📝 Your list is empty.")
         return
+
+    msg = "📝 **Your Shopping List**:\n"
+    for i, item in enumerate(items, 1):
+        msg += f"{i}. {item.name}\n"
     
-    item_name = ' '.join(context.args)
+    await update.message.reply_text(msg, parse_mode="Markdown")
+
+async def clear_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
-    
-    try:
-        # TODO: Remove from database
-        await update.message.reply_text(f"✅ Removed: {item_name}")
-        logger.info(f"User {user_id} removed: {item_name}")
-    except Exception as e:
-        logger.error(f"Error removing item: {e}")
-        await update.message.reply_text("❌ Error removing item.")
+    with SessionLocal() as db:
+        db.query(ShoppingItem).filter(ShoppingItem.user_id == user_id).delete()
+        db.commit()
+    await update.message.reply_text("🗑 List cleared.")
 
-async def show_shopping_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /list command - Show current shopping list"""
+async def suggestions_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
+    with SessionLocal() as db:
+        items = db.query(ShoppingItem).filter(ShoppingItem.user_id == user_id).all()
+        current_names = [i.name for i in items]
     
-    try:
-        # TODO: Fetch from database
-        msg = """📝 Your Shopping List:
+    if not current_names:
+        await update.message.reply_text("⚠️ Add items to your list first to get suggestions!")
+        return
 
-1. Milk 2L
-2. Bread
-3. Eggs (12)
-4. Cheese
-
-Total Items: 4
-Estimated Total: R$85,50"""
-        await update.message.reply_text(msg)
-        logger.info(f"User {user_id} viewed list")
-    except Exception as e:
-        logger.error(f"Error fetching list: {e}")
-        await update.message.reply_text("❌ Error fetching list.")
-
-async def clear_shopping_list(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    """Handle /clear command - Clear entire shopping list"""
-    user_id = update.effective_user.id
+    await update.message.reply_text("🤖 Thinking of suggestions...")
+    suggestions = await ai_service.get_suggestions(current_names)
     
-    try:
-        # TODO: Clear from database
-        await update.message.reply_text("✅ Shopping list cleared!")
-        logger.info(f"User {user_id} cleared list")
-    except Exception as e:
-        logger.error(f"Error clearing list: {e}")
-        await update.message.reply_text("❌ Error clearing list.")
+    msg = "💡 **AI Suggestions:**\n" + "\n".join([f"• {s}" for s in suggestions])
+    await update.message.reply_text(msg, parse_mode="Markdown")
