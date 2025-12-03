@@ -1,36 +1,64 @@
-"""Base handler class for Telegram bot handlers"""
+"""Base handler for Telegram bot."""
 import logging
-from typing import Any, Optional
 from telegram import Update
 from telegram.ext import ContextTypes
 
 logger = logging.getLogger(__name__)
 
-class BaseHandler:
-    """Base class for all command handlers"""
-    
-    def __init__(self):
-        self.logger = logging.getLogger(self.__class__.__name__)
-    
-    async def handle_error(self, update: Update, context: ContextTypes.DEFAULT_TYPE, error: Exception) -> None:
-        """Handle errors uniformly"""
-        self.logger.error(f"Error in {self.__class__.__name__}: {str(error)}")
-        if update and update.effective_chat:
-            try:
-                await update.effective_chat.send_message(
-                    "❌ An error occurred. Please try again later."
-                )
-            except Exception as e:
-                self.logger.error(f"Error sending error message: {e}")
-    
-    def get_user_id(self, update: Update) -> Optional[int]:
-        """Extract user ID from update"""
-        return update.effective_user.id if update.effective_user else None
-    
-    def get_chat_id(self, update: Update) -> Optional[int]:
-        """Extract chat ID from update"""
-        return update.effective_chat.id if update.effective_chat else None
-    
-    def get_username(self, update: Update) -> Optional[str]:
-        """Extract username from update"""
-        return update.effective_user.username if update.effective_user else None
+
+async def start_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /start command - Welcome message."""
+    try:
+        user = update.effective_user
+        welcome_text = (
+            f"👋 Welcome to SmartShopBot, {user.first_name}!\n\n"
+            "📝 **Available Commands:**\n"
+            "/add <item> - Add item to shopping list\n"
+            "/list - View your shopping list\n"
+            "/remove <number> - Remove item by number\n"
+            "/clear - Clear entire list\n"
+            "/suggestions - Get AI suggestions\n"
+            "/receipt - Process receipt photo\n"
+            "/stats - View spending stats\n"
+            "/currency - Set preferred currency\n"
+            "/language - Set language\n"
+            "/help - Show this help message\n\n"
+            "🚀 Type /add to get started!"
+        )
+        await update.message.reply_text(welcome_text, parse_mode="Markdown")
+        logger.info(f"User {user.id} started bot")
+    except Exception as e:
+        logger.error(f"Error in start_handler: {e}")
+        await update.message.reply_text(
+            "❌ An error occurred. Please try again."
+        )
+
+
+async def help_handler(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Handle /help command - Show help message."""
+    try:
+        help_text = (
+            "📚 **SmartShopBot Help**\n\n"
+            "**Shopping List Commands:**\n"
+            "`/add <item>` - Add item\n"
+            "  Example: /add Milk\n"
+            "`/list` - View all items\n"
+            "`/remove <n>` - Remove item\n"
+            "  Example: /remove 1\n"
+            "`/clear` - Clear list\n\n"
+            "**AI & Features:**\n"
+            "`/suggestions` - Get AI suggestions\n"
+            "`/receipt` - Upload receipt photo\n"
+            "`/stats` - Spending statistics\n\n"
+            "**Settings:**\n"
+            "`/currency <code>` - Set currency (USD, BRL, EUR)\n"
+            "`/language <code>` - Set language (en, pt, es)\n\n"
+            "❓ Need more help? Check documentation on GitHub."
+        )
+        await update.message.reply_text(help_text, parse_mode="Markdown")
+        logger.info(f"User {update.effective_user.id} requested help")
+    except Exception as e:
+        logger.error(f"Error in help_handler: {e}")
+        await update.message.reply_text(
+            "❌ Error displaying help. Please try again."
+        )
