@@ -1,34 +1,34 @@
 import logging
-from typing import List
+from openai import AsyncOpenAI
 from app.config.settings import settings
 
 logger = logging.getLogger(__name__)
 
 class AIService:
     def __init__(self):
-        self.api_key = settings.openai_api_key
-    
-    async def get_suggestions(self, history: List[str]) -> List[str]:
+        self.client = None
+        if settings.OPENAI_API_KEY:
+            self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
+        else:
+            logger.warning("OPENAI_API_KEY not found. AI suggestions will be disabled.")
+
+    async def get_suggestions(self, current_items: list[str]) -> list[str]:
+        if not self.client:
+            return ["(AI Disabled) Apples", "(AI Disabled) Bread", "(AI Disabled) Eggs"]
+
         try:
-            if not self.api_key:
-                return self._defaults()
-            
-            import openai
-            openai.api_key = self.api_key
-            prompt = f"Suggest 5 items based on: {', '.join(history[:10])}"
-            
-            response = openai.ChatCompletion.create(
+            prompt = f"Based on this shopping list: {', '.join(current_items)}, suggest 5 complementary items. Return only the item names separated by commas."
+            response = await self.client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user", "content": prompt}],
-                max_tokens=200
+                max_tokens=60
             )
-            
-            return response.choices[0].message.content.strip().split('\n')
+            content = response.choices[0].message.content
+            # Clean up the response
+            suggestions = [item.strip().replace('.', '') for item in content.split(',') if item.strip()]
+            return suggestions[:5]
         except Exception as e:
-            logger.error(f"AI error: {e}")
-            return self._defaults()
-    
-    def _defaults(self) -> List[str]:
-        return ["Milk", "Bread", "Eggs", "Butter", "Cheese", "Tomatoes", "Lettuce", "Chicken"]
+            logger.error(f"AI Error: {e}")
+            return ["Error generating suggestions"]
 
 ai_service = AIService()
