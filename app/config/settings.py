@@ -6,6 +6,8 @@ class Settings(BaseSettings):
     DATABASE_URL: str
     DATABASE_POOL_SIZE: int = 20
     LOG_LEVEL: str = "INFO"
+        HOST: str = "0.0.0.0"
+    PORT: int = 8080
 
     class Config:
         env_file = ".env"
