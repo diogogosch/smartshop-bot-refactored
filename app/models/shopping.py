@@ -2,13 +2,7 @@ from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime, B
 from sqlalchemy.orm import relationship
 from datetime import datetime
 from app.core.database import Base
-
-class User(Base):
-    __tablename__ = "users"
-    id = Column(BigInteger, primary_key=True, index=True)  # Telegram ID
-    username = Column(String, nullable=True)
-    created_at = Column(DateTime, default=datetime.utcnow)
-    items = relationship("ShoppingItem", back_populates="user", cascade="all, delete-orphan")
+from app.models.user import User
 
 class ShoppingItem(Base):
     __tablename__ = "shopping_items"
