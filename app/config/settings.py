@@ -5,6 +5,7 @@ class Settings(BaseSettings):
     OPENAI_API_KEY: str | None = None
     DATABASE_URL: str
     DATABASE_POOL_SIZE: int = 20
+        DATABASE_MAX_OVERFLOW: int = 10
     LOG_LEVEL: str = "INFO"
         HOST: str = "0.0.0.0"
     PORT: int = 8080
