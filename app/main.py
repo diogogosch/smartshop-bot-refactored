@@ -2,6 +2,8 @@ import logging
 import asyncio
 from aiohttp import web
 from telegram.ext import ApplicationBuilder, Application, CommandHandler
+from app.core.database import engine, Base
+from app import models  # Register all models for DB creation
 
 from app.config.settings import settings
 from app.handlers.shopping_handler import (
@@ -43,6 +45,10 @@ async def start_http_server():
 async def post_init(application: Application):
     """Post initialization hook."""
     await start_http_server()
+        # Create all database tables
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+    logger.info("Database tables created/verified.")
     logger.info("Bot is fully initialized and running.")
 
 
