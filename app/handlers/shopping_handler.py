@@ -5,7 +5,7 @@ from telegram.ext import ContextTypes, CommandHandler
 from sqlalchemy import select
 
 from app.core.database import AsyncSessionLocal
-from app.models.shopping import ShoppingItem, ShoppingList
+from app.models.shopping import ShoppingItem
 from app.models.user import User
 from app.services.ai_service import ai_service
 
