@@ -1,13 +1,11 @@
 import logging
-from telegram.ext import Application, CommandHandler
+import asyncio
+from aiohttp import web
+from telegram.ext import ApplicationBuilder, Application
+
 from app.config.settings import settings
-from app.core.database import init_db
-from app.handlers.shopping_handler import (
-    add_item_handler, 
-    list_handler, 
-    clear_handler, 
-    suggestions_handler
-)
+# Import your handlers here:
+# from app.handlers.shopping import shopping_router
 
 # Configure Logging
 logging.basicConfig(
@@ -16,28 +14,44 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+async def health_check(request):
+    return web.Response(text="OK", status=200)
+
+async def start_http_server():
+    """Starts a simple background HTTP server for Docker Healthchecks"""
+    app = web.Application()
+    app.router.add_get('/health', health_check)
+    runner = web.AppRunner(app)
+    await runner.setup()
+    site = web.TCPSite(runner, settings.HOST, settings.PORT)
+    await site.start()
+    logger.info(f"Health check server started on {settings.HOST}:{settings.PORT}")
+
+async def post_init(application: Application):
+    """Post initialization hook"""
+    await start_http_server()
+    logger.info("Bot is fully initialized and running.")
+
 def main():
-    logger.info("Starting SmartShopBot...")
-    
-    # Initialize Database (Create tables)
-    init_db()
-    
-    # Build Application
     if not settings.TELEGRAM_TOKEN:
-        raise ValueError("TELEGRAM_TOKEN is not set!")
+        logger.error("TELEGRAM_TOKEN is missing!")
+        return
 
-    application = Application.builder().token(settings.TELEGRAM_TOKEN).build()
+    logger.info("Starting SmartShopBot...")
 
-    # Register Handlers
-    application.add_handler(CommandHandler("start", list_handler))
-    application.add_handler(CommandHandler("add", add_item_handler))
-    application.add_handler(CommandHandler("list", list_handler))
-    application.add_handler(CommandHandler("clear", clear_handler))
-    application.add_handler(CommandHandler("suggest", suggestions_handler))
+    # Build Application
+    application = (
+        ApplicationBuilder()
+        .token(settings.TELEGRAM_TOKEN)
+        .post_init(post_init)
+        .build()
+    )
+
+    # --- REGISTER HANDLERS HERE ---
+    # application.add_handler(CommandHandler("start", start_handler))
     
-    logger.info("Bot is ready to poll.")
-    # Start Polling
+    # Run
     application.run_polling()
 
-if __name__ == "__main__":
+if __name__ == '__main__':
     main()
