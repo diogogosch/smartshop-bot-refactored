@@ -1,21 +1,25 @@
 FROM python:3.11-slim
+
 WORKDIR /app
 
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    libpq-dev \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt && \
-    apt-get update && \
-    apt-get install -y tesseract-ocr libtesseract-dev curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-RUN ls -la /app && ls -la /app/app && test -f /app/app/main.py
-
+# Set python path to root
 ENV PYTHONPATH=/app
 ENV PYTHONUNBUFFERED=1
 
-HEALTHCHECK --interval=30s --timeout=30s --start-period=5s --retries=3 \
-    CMD curl -f http://localhost:8080/health || exit 1
+# Healthcheck
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+  CMD pgrep python || exit 1
 
-CMD ["python", "-m", "app.main"]
+CMD ["python", "app/main.py"]
