@@ -3,37 +3,65 @@ version: '3.8'
 services:
   bot:
     build: .
-    image: smartshop-bot:latest
-    restart: always
-    depends_on:
-      - db
+    container_name: smartshop_bot
+    restart: unless-stopped
     environment:
+      - DATABASE_URL=postgresql+asyncpg://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:5432/${POSTGRES_DB}
+      - REDIS_URL=redis://redis:6379/0
       - TELEGRAM_TOKEN=${TELEGRAM_TOKEN}
       - OPENAI_API_KEY=${OPENAI_API_KEY}
-      - DATABASE_URL=postgresql://smartshop:securepass@db:5432/smartshop_db
-      - LOG_LEVEL=INFO
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
     networks:
-      - bot_network
+      - smartshop_net
 
-  db:
+  postgres:
     image: postgres:15-alpine
-    restart: always
+    container_name: smartshop_db
+    restart: unless-stopped
     environment:
-      - POSTGRES_USER=smartshop
-      - POSTGRES_PASSWORD=securepass
-      - POSTGRES_DB=smartshop_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
-    networks:
-      - bot_network
+      - ./init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U smartshop -d smartshop_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
+    networks:
+      - smartshop_net
+
+  redis:
+    image: redis:7-alpine
+    container_name: smartshop_redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+    networks:
+      - smartshop_net
+
+  adminer:
+    image: adminer
+    container_name: smartshop_adminer
+    restart: unless-stopped
+    ports:
+      - "8181:8080"
+    networks:
+      - smartshop_net
+
+networks:
+  smartshop_net:
+    driver: bridge
 
 volumes:
   postgres_data:
-
-networks:
-  bot_network:
